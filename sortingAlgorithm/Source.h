@@ -15,6 +15,8 @@ using namespace std;
 using namespace std::filesystem;
 /* function prototypes */
 
+void sortFiles(string fileFirstS, string fileSecondS);
+
 void createRandomNumbers()
 {
 	double lower_bound = 0;
@@ -34,19 +36,7 @@ void createRandomNumbers()
 		}
 	}
 }
-void pushToVec(vector<double> &vec, string s)
-{
-	fstream tmp(s, fstream::in );
-		if (!tmp.is_open())
-		{
-			cout << "error pushvec";
-		}
- 	for (int i=0;i<vec.size();i++)
-	{
 
-		tmp>>vec[i];
-	}
-}
 
 
 void mergeTwoFiles()
@@ -83,80 +73,68 @@ void mergeTwoFiles()
 	}
 }
 
-void mergeFiles(string dir, int q)
+void mergeFiles()
 {
-	vector<double> vecFirst(M,INF);
-	vector<double> vecsecond(M, INF);
-	vector<double> templM;
-	fstream create("temp1\\merge" + dir, fstream::out );
-	create.close();
-	for (int i=q;i<q+50;i++)
+	vector<string> files;
+	string path = "temp1";
+	for (auto &p : directory_iterator(path))
 	{
-		fstream tmp("temp1\\merge" + dir, fstream::out | fstream::app |fstream::in);
-		pushToVec(vecsecond, "temp1\\" + to_string(i));
-		pushToVec(vecFirst, "temp1\\merge" + dir);
-		
-		if (!tmp.is_open())
-		{
-			cout << "error mergeTwo";
-		}
-
-		int first = 0,
-			sec = 0,
-			c = 0;
-		// нужно сделать пока чанк не закончиться потом новый чанк брать
-		//иначе никак
-		while ( sec <M )
-		{
-			if (first==M)
-			{
-				for (int i = 0; i < vecFirst.size(); i++)
-				{
-					tmp >> vecFirst[i];
-				}
-				first = 0;
-			}
-			
-			if (vecFirst[first] <= vecsecond[sec])
-			{
-				if (vecFirst[first] < INF)
-				{
-					templM.push_back(vecFirst[first]);
-				}
-					c++;
-					first++;
-			}
-			else 
-			{
-				tmp<<vecsecond[sec];
-				c++;
-				sec++;
-			}
-
-			
-		}
-		for (int i = 0; i < templM.size(); i++)
-		{
-			tmp << templM[i]<<" ";
-		}
-		templM.clear();
+		files.push_back(p.path().filename().string());
 	}
+	int x = 0;
+	while (x+1<=files.size())
+	{
+		thread FThread(sortFiles, files[x], files[x + 1]);
+		x+=2;
+		thread SThread(sortFiles, files[x], files[x + 1]);
+		x += 2;
+		thread TThread(sortFiles, files[x], files[x + 1]);
+		x += 2;
+		thread FourthThread(sortFiles, files[x], files[x + 1]);
+		x += 2;
+		FThread.join();
+		SThread.join();
+		TThread.join();
+		FourthThread.join();
+	}
+	
+}
 
 
+void sortFiles(string fileFirstS, string fileSecondS)
+{
+	fstream fileFirst("temp1\\" + fileFirstS, fstream::in);
+	fstream fileSecond("temp1\\" + fileSecondS, fstream::in);
+	fstream newFile("temp1\\" + fileFirstS+"_"+fileSecondS, fstream::out);
+	if (!fileFirst.is_open()|| !fileSecond.is_open())
+	{
+		cout << "error";
+	}
+	double first = 0;
+	double second = 0;
+	while (!fileFirst.eof() && !fileSecond.eof())
+	{
+		fileFirst >> first;
+		fileSecond >> second;
+		if (first<second)
+		{
+			newFile << first<<" ";
+		} 
+		else
+		{
+			newFile << second << " ";
+		}
+	}
+	fileFirst.close();
+	fileSecond.close();
+	newFile.close();
 }
 
 
 void mergeAll()
 {
 	//тут можно while
-	thread mergeF(mergeFiles, "0", 0);
-	thread mergeS(mergeFiles, "1", 50);
-	thread mergeT(mergeFiles, "2", 100);
-	thread mergeFourth(mergeFiles, "3", 150);// соединяем в один большой файл с отсорт чиислами
-	mergeF.join();
-	mergeS.join();
-	mergeT.join();
-	mergeFourth.join();
+	mergeFiles( );
 	//тут тоже
 	thread threadMergeTwoFiles1(mergeTwoFiles); // TODO another count of threads
 	thread threadMergeTwoFiles2(mergeTwoFiles);
