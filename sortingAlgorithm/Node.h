@@ -1,113 +1,70 @@
 #pragma once
 #include "Source.h"
-class Node 
+
+void merge(vector<double> &arr, int l, int m, int r)
 {
-public:
+	int n1 = m - l + 1;
+	int n2 = r - m;
 
-	double data;
-	Node* next;
-};
+	// Create temp arrays
+	vector<double> L(n1);
+	vector<double> R(n2);
 
+	// Copy data to temp arrays L[] and R[]
+	for (int i = 0; i < n1; i++)
+		L[i] = arr[l + i];
+	for (int j = 0; j < n2; j++)
+		R[j] = arr[m + 1 + j];
 
-void deleteNode(Node** node)
-{
-	Node* nextNode = *node;
-	while ((*node)->next != NULL)
-	{
-		nextNode = (*node)->next;
-		delete* node;
-		*node = nextNode;
-	}
-	delete nextNode;
-}
+	// Merge the temp arrays back into arr[l..r]
 
-Node* SortedMerge(Node* a, Node* b)
-{
-	Node* result = NULL;
-	Node* temp = NULL;
-	Node* next = NULL;
-	while (a != NULL || b != NULL)
-	{
-		/* Base cases */
-		if (b == NULL)
-		{
-			next = a;
-			a = a->next;
-		}
-		else
-			if (a == NULL)
-			{
-				next = b;
-				b = b->next;
-			}
-			else
-				if (a->data <= b->data)
-				{
-					next = a;
-					a = a->next;
-				}
-				else
-				{
-					next = b;
-					b = b->next;
-				}
-		if (!result) {
-			result = next;
+	// Initial index of first subarray
+	int i = 0;
+
+	// Initial index of second subarray
+	int j = 0;
+
+	// Initial index of merged subarray
+	int k = l;
+
+	while (i < n1 && j < n2) {
+		if (L[i] <= R[j]) {
+			arr[k] = L[i];
+			i++;
 		}
 		else {
-			temp->next = next;
+			arr[k] = R[j];
+			j++;
 		}
-		temp = next; //////////?????????
-	}
-	return (result);
-
-}
-
-void FrontBackSplit(Node* source, Node** frontRef, Node** backRef)
-{
-	Node* fast;
-	Node* slow;
-	slow = source;
-	fast = source->next;
-
-	/* Advance 'fast' two nodes, and advance 'slow' one node */
-	while (fast != NULL) {
-		fast = fast->next;
-		if (fast != NULL) {
-			slow = slow->next;
-			fast = fast->next;
-		}
+		k++;
 	}
 
-	/* 'slow' is before the midpoint in the list, so split it in two
-	at that point. */
-	*frontRef = source;
-	*backRef = slow->next;
-	slow->next = NULL;
+	// Copy the remaining elements of
+	// L[], if there are any
+	while (i < n1) {
+		arr[k] = L[i];
+		i++;
+		k++;
+	}
+
+	// Copy the remaining elements of
+	// R[], if there are any
+	while (j < n2) {
+		arr[k] = R[j];
+		j++;
+		k++;
+	}
 }
 
-void push(Node** head_ref, double new_data)
-{
-	/* allocate node */
-	Node* new_node = new Node();
 
-	/* put in the data */
-	new_node->data = new_data;
 
-	/* link the old list off the new node */
-	new_node->next = (*head_ref);
 
-	/* move the head to point to the new node */
-	(*head_ref) = new_node;
-}
-
-void createChunks(Node** node, fstream& fin)
+void createChunks(vector<double> &vec, fstream& fin)
 {
 	double g;
 	for (int i = 0; i < M; i++)
 	{
-		fin >> g;
-		push(node, g);
+		fin >> vec[i];
 	}
 }bool makeDir()
 {
@@ -119,42 +76,30 @@ void createChunks(Node** node, fstream& fin)
 		return create_directories(dir, ec);
 }
 
-void MergeSort(Node** headRef) {
-	Node* head = *headRef;
-	Node* a;
-	Node* b;
-
-	/* Base case -- length 0 or 1 */
-	if ((head == NULL) || (head->next == NULL)) {
-		return;
+void MergeSort(vector<double> &vec, int left,int right) {
+	if (left >= right) {
+		return;//returns recursively
 	}
-
-	/* Split head into 'a' and 'b' sublists */
-	FrontBackSplit(head, &a, &b);
-
-	/* Recursively sort the sublists */
-	MergeSort(&a);
-	MergeSort(&b);
-
-	/* answer = merge the two sorted lists together */
-	*headRef = SortedMerge(a, b);
+	int m = left + (right - left) / 2;
+	MergeSort(vec, left, m);
+	MergeSort(vec, m + 1, right);
+	merge(vec, left, m, right);
 }
 
-void printListToFile(Node* node, int i)
+void printListToFile(vector<double>& vec, int i)
 {
 	string s = "temp1\\" + to_string(i);
 	fstream fout(s.c_str(), fstream::out);
-	while (node != NULL)
+	for (int i = 0; i < vec.size(); i++)
 	{
-		fout << node->data << " ";
-		node = node->next;
+		fout << vec[i]<<" ";
 	}
 }
 
-void printList(Node* node)
+void printList(vector<double>& vec)
 {
-	while (node != NULL) {
-		cout << node->data << " ";
-		node = node->next;
+	for (int i = 0; i < vec.size(); i++)
+	{
+		cout << vec[i]<<" ";
 	}
 }

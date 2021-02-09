@@ -9,8 +9,8 @@
 #include <algorithm>
 #include <thread>
 #define  INF 10001
-#define  M 5// m5e6
-#define N 30 //1e9
+#define  M 5e6// m5e6
+#define N 1e8 //1e9
 using namespace std;
 using namespace std::filesystem;
 /* function prototypes */
@@ -44,15 +44,15 @@ void deleteOldFiles(vector<string>& files, int x)
 	}
 }
 
-void createRandomNumbers()
+void createRandomNumbers(int n)
 {
 	double lower_bound = 0;
 	double upper_bound = 10000;
 	uniform_real_distribution<double> unif(lower_bound, upper_bound);
 	default_random_engine re;
 	
-	fstream fout("temp",fstream::ate);
-	for (int i=0;i<N;i++)
+	fstream fout("temp",fstream::out);
+	for (int i=0;i<n;i++)
 	{
 		double randomNumber = unif(re);
 		fout<< randomNumber<<" ";
