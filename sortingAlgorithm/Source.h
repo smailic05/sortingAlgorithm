@@ -9,13 +9,40 @@
 #include <algorithm>
 #include <thread>
 #define  INF 10001
-#define  M 5e6
-#define N 1e9
+#define  M 5// m5e6
+#define N 30 //1e9
 using namespace std;
 using namespace std::filesystem;
 /* function prototypes */
 
 void sortFiles(string fileFirstS, string fileSecondS);
+
+void renameAll()
+{
+	string path = "temp1\\";
+	vector<string> files;
+	for (auto& p : directory_iterator(path))
+	{
+		files.push_back(p.path().filename().string());
+	}
+	for (int i=0;i<files.size();i++)
+	{
+		rename(path+files[i], path+to_string(i));
+	}
+}
+void deleteOldFiles(vector<string>& files, int x)
+{
+	for (int i = 0; i < x; i++)
+	{
+		string filename = "temp1\\" + files[i];
+		if (remove(filename.c_str()) == 0) {
+			cout << "Файл " << filename << " удален\n";
+		}
+		else {
+			cerr << "Ошибка: " << '\n';
+		}
+	}
+}
 
 void createRandomNumbers()
 {
@@ -38,66 +65,51 @@ void createRandomNumbers()
 }
 
 
-
-void mergeTwoFiles()
-{
-	fstream tmp("temp1\\merge0" , fstream::in );
-	fstream tmp2("temp1\\merge1", fstream::in);
-	fstream tmp3("temp1\\mergeA", fstream::out);
-	
-	while (!tmp.eof() && !tmp2.eof())
-	{
-		double g,f;
-		while (tmp.eof() && !tmp2.eof())
-		{
-			tmp >> g;
-			tmp3 << g << " ";
-		} 
-		while (tmp2.eof() && !tmp.eof())
-		{
-			tmp2 >> g;
-			tmp3 << g << " ";
-		}
-
-		tmp >> g;
-		tmp2 >> f;
-		if (g<f)
-		{
-			tmp3 << g<<" ";
-		} 
-		else
-		{
-			tmp3 << f << " ";
-		}
-
-	}
-}
-
-void mergeFiles()
+int mergeFiles()
 {
 	vector<string> files;
 	string path = "temp1";
-	for (auto &p : directory_iterator(path))
+	while (true)
 	{
-		files.push_back(p.path().filename().string());
+		for (auto &p : directory_iterator(path))
+		{
+			files.push_back(p.path().filename().string());
+		}
+
+		int x = 0;
+
+		if (files.size() == 1)// если файлы закончились
+		{
+			return 0;
+		}
+		if (x+1<files.size()&& x + 7 >= files.size())
+		{
+			sortFiles(files[x], files[x + 1]);
+			x += 2;
+		}
+		
+		while (x + 7 < files.size())
+		{
+			thread FThread(sortFiles, files[x], files[x + 1]);// TODO сделать норм, разделять файлы по 4 группы и сортировать группы
+			x += 2;
+			thread SThread(sortFiles, files[x], files[x + 1]);
+			x += 2;
+			thread TThread(sortFiles, files[x], files[x + 1]);
+			x += 2;
+			thread FourthThread(sortFiles, files[x], files[x + 1]);
+			x += 2;
+			FThread.join();
+			SThread.join();
+			TThread.join();
+			FourthThread.join();
+
+		}
+		
+		
+		deleteOldFiles(files, x);
+		renameAll();
+		files.clear();
 	}
-	int x = 0;
-	while (x+1<=files.size())
-	{
-		thread FThread(sortFiles, files[x], files[x + 1]);
-		x+=2;
-		thread SThread(sortFiles, files[x], files[x + 1]);
-		x += 2;
-		thread TThread(sortFiles, files[x], files[x + 1]);
-		x += 2;
-		thread FourthThread(sortFiles, files[x], files[x + 1]);
-		x += 2;
-		FThread.join();
-		SThread.join();
-		TThread.join();
-		FourthThread.join();
-	}
-	
 }
 
 
@@ -112,18 +124,31 @@ void sortFiles(string fileFirstS, string fileSecondS)
 	}
 	double first = 0;
 	double second = 0;
+	fileFirst >> first;
+	fileSecond >> second;
 	while (!fileFirst.eof() && !fileSecond.eof())
 	{
-		fileFirst >> first;
-		fileSecond >> second;
+
 		if (first<second)
 		{
 			newFile << first<<" ";
+			fileFirst >> first;
 		} 
 		else
 		{
 			newFile << second << " ";
+			fileSecond >> second;
 		}
+	}
+	while (!fileSecond.eof())
+	{	
+		newFile << second << " ";
+		fileSecond >> second;
+	}
+	while (!fileFirst.eof())
+	{	
+		newFile << first << " ";
+		fileFirst >> first;
 	}
 	fileFirst.close();
 	fileSecond.close();
@@ -136,10 +161,8 @@ void mergeAll()
 	//тут можно while
 	mergeFiles( );
 	//тут тоже
-	thread threadMergeTwoFiles1(mergeTwoFiles); // TODO another count of threads
-	thread threadMergeTwoFiles2(mergeTwoFiles);
-	threadMergeTwoFiles1.join();
-	threadMergeTwoFiles2.join();
-	mergeTwoFiles();
+
+
+
 	//erase temp
 }

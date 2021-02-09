@@ -10,16 +10,18 @@ using namespace std;
 
 int main()
 {
+	
 
-	fstream fin("temp1\\merge0",fstream::in);
-	//for (int i = 0; i < N/M; i++)
-	//{
- //       Node* a = NULL;
- //       createChunks(&a, fin);
- //       MergeSort(&a);
- //       printListToFile(a, i);
- //       deleteNode(&a);
-	//}
+	fstream fin("temp",fstream::in);
+
+	for (int i = 0; i < N/M; i++)
+	{
+		Node* a = NULL;
+		createChunks(&a, fin);
+		MergeSort(&a);
+		printListToFile(a, i);
+		deleteNode(&a);
+	}
 	//std::fstream fs;
 	//fs.open("test.txt", std::fstream::in | std::fstream::out | std::fstream::app);
 
