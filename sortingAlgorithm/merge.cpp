@@ -1,7 +1,7 @@
 #pragma once
-#include "Source.h"
+#include "merge.h"
 
-void merge(vector<double> &arr, int l, int m, int r)
+void merge(vector<double>& arr, int l, int m, int r)
 {
 	int n1 = m - l + 1;
 	int n2 = r - m;
@@ -56,27 +56,7 @@ void merge(vector<double> &arr, int l, int m, int r)
 	}
 }
 
-
-
-
-void createChunks(vector<double> &vec, fstream& fin)
-{
-	double g;
-	for (int i = 0; i < M; i++)
-	{
-		fin >> vec[i];
-	}
-}bool makeDir()
-{
-	const char dir[] = "temp1";
-	error_code ec;
-	if (is_directory("temp1"))
-		return is_directory(status(dir));
-	else
-		return create_directories(dir, ec);
-}
-
-void MergeSort(vector<double> &vec, int left,int right) {
+void MergeSort(vector<double>& vec, int left, int right) {
 	if (left >= right) {
 		return;//returns recursively
 	}
@@ -84,22 +64,4 @@ void MergeSort(vector<double> &vec, int left,int right) {
 	MergeSort(vec, left, m);
 	MergeSort(vec, m + 1, right);
 	merge(vec, left, m, right);
-}
-
-void printListToFile(vector<double>& vec, int i)
-{
-	string s = "temp1\\" + to_string(i);
-	fstream fout(s.c_str(), fstream::out);
-	for (int i = 0; i < vec.size(); i++)
-	{
-		fout << vec[i]<<" ";
-	}
-}
-
-void printList(vector<double>& vec)
-{
-	for (int i = 0; i < vec.size(); i++)
-	{
-		cout << vec[i]<<" ";
-	}
 }
