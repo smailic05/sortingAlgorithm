@@ -1,20 +1,42 @@
 #pragma once
-#include <filesystem>
-#include <vector>
-#include <list>
-#include <string>
-#include <fstream>
-#include <random>
-#include <iterator>
-#include <algorithm>
-#include <thread>
-#define  M 5e7// m5e6
-#define N 1e9 //1e9
-using namespace std;
-using namespace std::filesystem;
+#include "merge.h"
 
+void createChunks(vector<double>& vec, fstream& fin)
+{
+	double g;
+	for (int i = 0; i < vec.size(); i++)
+	{
+		fin >> vec[i];
+	}
+}
 
-void sortFiles(string fileFirstS, string fileSecondS);
+bool makeDir()
+{
+	const char dir[] = "temp1";
+	error_code ec;
+	if (is_directory("temp1"))
+		return is_directory(status(dir));
+	else
+		return create_directories(dir, ec);
+}
+
+void printListToFile(vector<double>& vec, int i)
+{
+	string s = "temp1\\" + to_string(i);
+	fstream fout(s.c_str(), fstream::out);
+	for (int i = 0; i < vec.size(); i++)
+	{
+		fout << vec[i] << " ";
+	}
+}
+
+void printList(vector<double>& vec)
+{
+	for (int i = 0; i < vec.size(); i++)
+	{
+		cout << vec[i] << " ";
+	}
+}
 
 void renameAll()
 {
@@ -24,9 +46,9 @@ void renameAll()
 	{
 		files.push_back(p.path().filename().string());
 	}
-	for (int i=0;i<files.size();i++)
+	for (int i = 0; i < files.size(); i++)
 	{
-		rename(path+files[i], path+to_string(i));
+		rename(path + files[i], path + to_string(i));
 	}
 }
 void deleteOldFiles(vector<string>& files, int x)
@@ -34,11 +56,10 @@ void deleteOldFiles(vector<string>& files, int x)
 	for (int i = 0; i < x; i++)
 	{
 		string filename = "temp1\\" + files[i];
-		if (remove(filename.c_str()) == 0) {
-			cout << "Файл " << filename << " удален\n";
-		}
-		else {
-			cerr << "Ошибка: " << '\n';
+		if (remove(filename.c_str()) != 0) 
+		{
+
+			cerr << "error: " << '\n';
 		}
 	}
 }
@@ -49,12 +70,12 @@ void createRandomNumbers(int n)
 	double upper_bound = 10000;
 	uniform_real_distribution<double> unif(lower_bound, upper_bound);
 	default_random_engine re;
-	
-	fstream fout("temp",fstream::out);
-	for (int i=0;i<n;i++)
+
+	fstream fout("temp", fstream::out);
+	for (int i = 0; i < n; i++)
 	{
 		double randomNumber = unif(re);
-		fout<< randomNumber<<" ";
+		fout << randomNumber << " ";
 
 	}
 }
@@ -66,7 +87,7 @@ int mergeFiles()
 	string path = "temp1";
 	while (true)
 	{
-		for (auto &p : directory_iterator(path))
+		for (auto& p : directory_iterator(path))
 		{
 			files.push_back(p.path().filename().string());
 		}
@@ -77,15 +98,15 @@ int mergeFiles()
 		{
 			return 0;
 		}
-		if (x+1<files.size()&& x + 7 >= files.size())
+		if (x + 1 < files.size() && x + 7 >= files.size())
 		{
 			sortFiles(files[x], files[x + 1]);
 			x += 2;
 		}
-		
+
 		while (x + 7 < files.size())
 		{
-			thread FThread(sortFiles, files[x], files[x + 1]);// TODO сделать норм, разделять файлы по 4 группы и сортировать группы
+			thread FThread(sortFiles, files[x], files[x + 1]);
 			x += 2;
 			thread SThread(sortFiles, files[x], files[x + 1]);
 			x += 2;
@@ -99,8 +120,8 @@ int mergeFiles()
 			FourthThread.join();
 
 		}
-		
-		
+
+
 		deleteOldFiles(files, x);
 		renameAll();
 		files.clear();
@@ -112,8 +133,8 @@ void sortFiles(string fileFirstS, string fileSecondS)
 {
 	fstream fileFirst("temp1\\" + fileFirstS, fstream::in);
 	fstream fileSecond("temp1\\" + fileSecondS, fstream::in);
-	fstream newFile("temp1\\" + fileFirstS+"_"+fileSecondS, fstream::out);
-	if (!fileFirst.is_open()|| !fileSecond.is_open())
+	fstream newFile("temp1\\" + fileFirstS + "_" + fileSecondS, fstream::out);
+	if (!fileFirst.is_open() || !fileSecond.is_open())
 	{
 		cout << "error";
 	}
@@ -124,11 +145,11 @@ void sortFiles(string fileFirstS, string fileSecondS)
 	while (!fileFirst.eof() && !fileSecond.eof())
 	{
 
-		if (first<second)
+		if (first < second)
 		{
-			newFile << first<<" ";
+			newFile << first << " ";
 			fileFirst >> first;
-		} 
+		}
 		else
 		{
 			newFile << second << " ";
@@ -136,12 +157,12 @@ void sortFiles(string fileFirstS, string fileSecondS)
 		}
 	}
 	while (!fileSecond.eof())
-	{	
+	{
 		newFile << second << " ";
 		fileSecond >> second;
 	}
 	while (!fileFirst.eof())
-	{	
+	{
 		newFile << first << " ";
 		fileFirst >> first;
 	}
@@ -149,5 +170,3 @@ void sortFiles(string fileFirstS, string fileSecondS)
 	fileSecond.close();
 	newFile.close();
 }
-
-
